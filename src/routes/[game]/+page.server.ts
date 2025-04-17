@@ -10,6 +10,8 @@ const ddragonPicsURI = "https://ddragon.leagueoflegends.com/cdn/{version}/img/ch
 const genshinCharactersURI = "https://genshin.jmp.blue/characters";
 const genshinPicsURI = "https://genshin.jmp.blue/characters/{character}/icon-big";
 
+export const ssr = false;
+
 export const load: PageServerLoad = async (event) => {
   let title = " Memory";
   let characters: string[];

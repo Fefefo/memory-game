@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { AlertDialog } from "bits-ui";
   import { ReplacePlaceholders } from "$lib/index";
 
   let { data } = $props();
-  let allCharacters = data.characters;
 
   let flippable = true;
 
@@ -13,21 +13,27 @@
   let max = $derived(width * width);
   let characters: string[] = $state([]);
   let ready = $state(false);
+  let dialogOpen = $state(false);
+  let startTime: number | undefined;
+  let minElapsed: number = $state(0);
+  let secElapsed: number = $state(0);
 
   initBoard();
 
   function initBoard() {
-    allCharacters = allCharacters.sort(() => Math.random() - 0.5);
-    characters = allCharacters.slice(0, max / 2);
+    characters = data.characters.sort(() => Math.random() - 0.5).slice(0, max / 2);
     characters = [...characters, ...characters];
-    characters.sort(() => Math.random() - 0.5);
+    characters = characters.sort(() => Math.random() - 0.5);
     currEls = [];
     completedEls = [];
+    startTime = undefined;
+    dialogOpen = false;
 
     ready = true;
   }
 
   function flipCard(event: MouseEvent) {
+    startTime = startTime ?? Date.now();
     if (!flippable) return;
     const el = <HTMLElement>event.currentTarget;
     if ((currEls.length == 1 && currEls[0].includes(el)) || el.classList.contains("rotate-y-180")) return;
@@ -38,7 +44,10 @@
         completedEls.push(currEls[0][1], currEls[1][1]);
         flippable = true;
         if (completedEls.length == max) {
-          setTimeout(() => alert("WIN"), 500);
+          const elapsed = Math.floor((Date.now() - startTime!) / 1000);
+          minElapsed = Math.floor(elapsed / 60);
+          secElapsed = elapsed % 60;
+          setTimeout(() => (dialogOpen = true), 500);
         }
       } else {
         const els = currEls;
@@ -62,6 +71,25 @@
 <svelte:head>
   <title>{data.title}</title>
 </svelte:head>
+
+<AlertDialog.Root bind:open={dialogOpen}>
+  <AlertDialog.Portal>
+    <AlertDialog.Overlay
+      class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+    />
+    <AlertDialog.Content
+      class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 border p-7 outline-hidden sm:max-w-lg md:w-full "
+    >
+      <AlertDialog.Title>Well Done!</AlertDialog.Title>
+      <AlertDialog.Description
+        >You win in {minElapsed > 0
+          ? `${minElapsed}m ${secElapsed}s`
+          : `${secElapsed} seconds`}!</AlertDialog.Description
+      >
+      <AlertDialog.Action onclick={initBoard}>YAAAY</AlertDialog.Action>
+    </AlertDialog.Content>
+  </AlertDialog.Portal>
+</AlertDialog.Root>
 
 <div class="min-h-screen overflow-hidden bg-[#404258] select-none">
   <main class="mx-auto mt-5 flex max-w-5xl flex-col rounded-lg bg-[#474e68] p-8 text-center align-middle text-white">
