@@ -70,6 +70,6 @@ async function getCharactersGenshin(): Promise<string[]> {
   if (cached) return JSON.parse(cached);
   const res = await fetch(genshinCharactersURI);
   const characters = await res.json();
-  redis.set("genshin-characters", JSON.stringify(characters));
+  redis.set("genshin-characters", JSON.stringify(characters), "EX", 7200);
   return characters;
 }

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { AlertDialog } from "bits-ui";
   import { ReplacePlaceholders } from "$lib/index";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
 
   let { data } = $props();
 
@@ -17,6 +19,7 @@
   let startTime: number | undefined;
   let minElapsed: number = $state(0);
   let secElapsed: number = $state(0);
+  let boardKey: number = $state(0);
 
   initBoard();
 
@@ -27,8 +30,9 @@
     currEls = [];
     completedEls = [];
     startTime = undefined;
-    dialogOpen = false;
+    dialogOpen = true;
 
+    boardKey += 1;
     ready = true;
   }
 
@@ -63,8 +67,11 @@
   }
 
   function swapGame() {
-    // isLol = !isLol;
-    // ready = false;
+    const togo = page.params.game == "lol" ? "/genshin" : page.params.game == "genshin" ? "/lol" : "/";
+    goto(togo).then(() => {
+      initBoard();
+    });
+    ready = false;
   }
 </script>
 
@@ -74,11 +81,9 @@
 
 <AlertDialog.Root bind:open={dialogOpen}>
   <AlertDialog.Portal>
-    <AlertDialog.Overlay
-      class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
-    />
+    <AlertDialog.Overlay class="fixed inset-0 z-50 bg-black/80" />
     <AlertDialog.Content
-      class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 border p-7 outline-hidden sm:max-w-lg md:w-full "
+      class="fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border-2 border-[#235] bg-[#457] p-7 outline-hidden sm:max-w-lg md:w-full"
     >
       <AlertDialog.Title>Well Done!</AlertDialog.Title>
       <AlertDialog.Description
@@ -119,29 +124,46 @@
           class="grid place-content-center justify-items-center gap-10"
           style="grid-template-columns: repeat({width}, minmax(0, 1fr)"
         >
-          {#each characters as character, i (character + i)}
-            <div class="card-container relative h-[60px] w-[60px]">
-              <button
-                class="flex h-full w-full rounded duration-500 transform-3d"
-                onmouseup={flipCard}
-                data-name={character}
+          {#key boardKey}
+            {#each characters as character}
+              <div
+                class="card-container relative {width == 8
+                  ? 'h-10 w-10'
+                  : width == 6
+                    ? 'h-12 w-12'
+                    : 'h-[60px] w-[60px]'} sm:h-[60px] sm:w-[60px]"
               >
-                <div
-                  class="align-items absolute flex h-full w-full justify-center rounded-xl bg-[#50577a] backface-hidden"
-                ></div>
-                <div
-                  class="card-bg align-items absolute flex h-full w-full rotate-y-180 justify-center rounded-xl backface-hidden"
+                <button
+                  class="flex h-full w-full rounded duration-500 transform-3d"
+                  onmouseup={flipCard}
+                  data-name={character}
                 >
-                  <img class="rounded" src={ReplacePlaceholders(data.picsURI, { character })} alt="" />
-                </div>
-              </button>
-            </div>
-          {/each}
+                  <div
+                    class="align-items absolute box-border flex h-full w-full justify-center rounded-xl border-2 border-cyan-700 bg-[#457] shadow-sm backface-hidden"
+                  ></div>
+                  <div
+                    class="card-bg align-items absolute flex h-full w-full rotate-y-180 justify-center rounded-xl backface-hidden"
+                  >
+                    <img class="rounded-xl" src={ReplacePlaceholders(data.picsURI, { character })} alt="" />
+                  </div>
+                </button>
+              </div>
+            {/each}
+          {/key}
         </div>
       {/if}
     </section>
     <section>
-      <button class="card-bg mt-5 rounded px-4 py-3 font-bold shadow-sm" onclick={swapGame}>SWAP GAME</button>
+      <button
+        class="hover:motion-preset-shake mt-5 rounded bg-[#50577a] px-4 py-3 font-bold shadow-md"
+        onclick={swapGame}>SWAP GAME</button
+      >
     </section>
   </main>
 </div>
+
+<!-- <style lang="postcss">
+  .card-size {
+    @apply h-12 w-12 sm:h-[60px] sm:w-[60px];
+  }
+</style> -->
