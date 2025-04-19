@@ -67,7 +67,6 @@ async function getCharactersLol(latest: string, changed: boolean): Promise<strin
 
 async function getCharactersGenshin(): Promise<string[]> {
   const cached = await redis.get("genshin-characters");
-  console.log(cached);
   if (cached) return JSON.parse(cached);
   const res = await fetch(genshinCharactersURI);
   const characters = (await res.json()).filter((character: any) => !character.includes("traveler"));

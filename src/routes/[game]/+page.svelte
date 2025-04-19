@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AlertDialog } from "bits-ui";
+  import { AlertDialog, Button } from "bits-ui";
   import { ReplacePlaceholders } from "$lib/index";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
@@ -74,7 +74,7 @@
     const currBest = localStorage.getItem(`best-${max}`);
     if (!currBest || elapsed < (bestElapsed = parseInt(currBest || "NaN", 10))) {
       bestElapsed = elapsed;
-      localStorage.setItem(`best-${max}`, elapsed.toString());
+      localStorage.setItem(`best-${page.params.game}-${max}`, elapsed.toString());
     }
     setTimeout(() => (dialogOpen = true), 500);
   }
@@ -110,7 +110,7 @@
         <p>Your record with {max / 2} pairs is {prettifyTime(bestElapsed)}!</p>
       </AlertDialog.Description>
       <AlertDialog.Action
-        class="hover:motion-preset-shake w-1/2 rounded bg-blue-600/35 px-4 py-3 font-bold shadow-md"
+        class="hover:motion-preset-shake w-1/2 cursor-pointer rounded bg-blue-600/35 px-4 py-3 font-bold shadow-md"
         onclick={initBoard}>Play again!</AlertDialog.Action
       >
     </AlertDialog.Content>
@@ -144,9 +144,15 @@
         >
           {#key boardKey}
             {#each characters as character}
-              <div class="relative {width == 8 ? 'h-10 w-10' : width == 6 ? 'h-12 w-12' : 'h-16 w-16'} sm:h-16 sm:w-16">
+              <div
+                class="relative {width == 8
+                  ? 'h-10 w-10'
+                  : width == 6
+                    ? 'h-12 w-12'
+                    : 'h-16 w-16'} cursor-pointer sm:h-16 sm:w-16"
+              >
                 <button
-                  class="flex h-full w-full rounded duration-500 transform-3d"
+                  class="flex h-full w-full cursor-pointer rounded duration-500 transform-3d"
                   onmouseup={flipCard}
                   data-name={character}
                 >
@@ -166,10 +172,12 @@
       {/if}
     </section>
     <section>
-      <button
-        class="hover:motion-preset-shake bg-primary mt-5 rounded-xl px-8 py-3 font-bold shadow-md sm:px-12 sm:text-lg"
-        onclick={swapGame}>SWAP GAME</button
+      <Button.Root
+        class="hover:motion-preset-shake bg-primary mt-5 cursor-pointer rounded-xl px-8 py-3 font-bold shadow-md sm:px-12 sm:text-lg"
+        onclick={swapGame}
       >
+        SWAP GAME
+      </Button.Root>
     </section>
   </main>
 </div>
