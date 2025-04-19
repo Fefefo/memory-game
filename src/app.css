@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @plugin "tailwindcss-motion";
 
+@theme {
+  --color-surface: #263238;
+  --color-board: #37474f;
+  --color-offwhite: #dbdee0;
+  --color-primary: #4b6a88;
+  --color-secondary: #455a64;
+  --color-tertiary: #546e7a;
+  --color-border: #90a4ae;
+}
+
 * {
   font-family: "Poetsen One", sans-serif;
   font-weight: 400;
