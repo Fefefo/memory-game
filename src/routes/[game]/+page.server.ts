@@ -24,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
       picsURI = ReplacePlaceholders(ddragonPicsURI, { version: latestDdragon });
       break;
     case "genshin":
-      title = "Genshin" + title;
+      title = "Genshin Impact" + title;
       characters = await getCharactersGenshin();
       picsURI = genshinPicsURI;
       break;
@@ -67,9 +67,10 @@ async function getCharactersLol(latest: string, changed: boolean): Promise<strin
 
 async function getCharactersGenshin(): Promise<string[]> {
   const cached = await redis.get("genshin-characters");
+  console.log(cached);
   if (cached) return JSON.parse(cached);
   const res = await fetch(genshinCharactersURI);
-  const characters = await res.json();
+  const characters = (await res.json()).filter((character: any) => !character.includes("traveler"));
   redis.set("genshin-characters", JSON.stringify(characters), "EX", 7200);
   return characters;
 }

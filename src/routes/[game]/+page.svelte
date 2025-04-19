@@ -17,9 +17,9 @@
   let ready = $state(false);
   let dialogOpen = $state(false);
   let startTime: number | undefined;
-  let minElapsed: number = $state(0);
-  let secElapsed: number = $state(0);
   let boardKey: number = $state(0);
+  let elapsed: number = $state(0);
+  let bestElapsed: number = $state(0);
 
   initBoard();
 
@@ -48,10 +48,7 @@
         completedEls.push(currEls[0][1], currEls[1][1]);
         flippable = true;
         if (completedEls.length == max) {
-          const elapsed = Math.floor((Date.now() - startTime!) / 1000);
-          minElapsed = Math.floor(elapsed / 60);
-          secElapsed = elapsed % 60;
-          setTimeout(() => (dialogOpen = true), 500);
+          win();
         }
       } else {
         const els = currEls;
@@ -64,6 +61,28 @@
       }
       currEls = [];
     }
+  }
+
+  function prettifyTime(elapsed: number): string {
+    const minElapsed = Math.floor(elapsed / 60);
+    const secElapsed = elapsed % 60;
+    return minElapsed > 0 ? `${minElapsed}m ${secElapsed}s` : `${secElapsed} seconds`;
+  }
+
+  function win() {
+    elapsed = Math.floor((Date.now() - startTime!) / 1000);
+    const currBest = localStorage.getItem(`best-${max}`);
+    if (!currBest || elapsed < (bestElapsed = parseInt(currBest || "NaN", 10))) {
+      bestElapsed = elapsed;
+      localStorage.setItem(`best-${max}`, elapsed.toString());
+    }
+    setTimeout(() => (dialogOpen = true), 500);
+  }
+
+  function changePairsNum(event: Event) {
+    ready = false;
+    width = parseInt((event.target as HTMLInputElement).value);
+    initBoard();
   }
 
   function swapGame() {
@@ -83,14 +102,13 @@
   <AlertDialog.Portal>
     <AlertDialog.Overlay class="fixed inset-0 z-50 bg-black/80" />
     <AlertDialog.Content
-      class="bg-primary border-border fixed top-[50%] left-[50%] z-50 flex w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] flex-col items-center gap-4 rounded-md border-2 p-7 text-white outline-hidden sm:max-w-lg md:w-full"
+      class="motion-preset-fade-md bg-primary fixed top-[50%] left-[50%] z-50 flex w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] flex-col items-center gap-4 rounded-md border-2 border-indigo-300 p-7 text-white outline-hidden sm:max-w-lg md:w-full"
     >
       <AlertDialog.Title class="text-2xl">Congratulations</AlertDialog.Title>
-      <AlertDialog.Description class="text-offwhite"
-        >You won in {minElapsed > 0
-          ? `${minElapsed}m ${secElapsed}s`
-          : `${secElapsed} seconds`}!</AlertDialog.Description
-      >
+      <AlertDialog.Description class="text-offwhite text-center">
+        <p>You won in {prettifyTime(elapsed)}!</p>
+        <p>Your record with {max / 2} pairs is {prettifyTime(bestElapsed)}!</p>
+      </AlertDialog.Description>
       <AlertDialog.Action
         class="hover:motion-preset-shake w-1/2 rounded bg-blue-600/35 px-4 py-3 font-bold shadow-md"
         onclick={initBoard}>Play again!</AlertDialog.Action
@@ -100,28 +118,25 @@
 </AlertDialog.Root>
 
 <div class="bg-board sm:bg-surface min-h-screen overflow-hidden select-none">
-  <main class="bg-board mx-auto my-5 flex max-w-5xl flex-col rounded-lg p-8 text-center align-middle text-white">
+  <main class="bg-board mx-auto my-5 flex max-w-5xl flex-col rounded-3xl p-8 text-center align-middle text-white">
     <section class="flex flex-col items-center">
-      <h3 class="text-center text-2xl font-bold">
+      <h3 class="mb-4 text-center text-2xl font-bold text-amber-300">
         {data.title}
       </h3>
       <input
+        class="accent-emerald-300"
         id="width-slider"
         type="range"
         min="4"
         step="2"
         max="8"
         value={width}
-        onchange={(e) => {
-          ready = false;
-          width = parseInt(e.currentTarget.value);
-          initBoard();
-        }}
+        onchange={changePairsNum}
       />
-      <label for="width-slider">{width}</label>
+      <label for="width-slider">{max / 2} pairs</label>
     </section>
 
-    <section>
+    <section class="my-6">
       {#if ready}
         <div
           class="grid place-content-center justify-items-center gap-10"
@@ -136,10 +151,10 @@
                   data-name={character}
                 >
                   <div
-                    class="align-items border-border bg-tertiary absolute box-border flex h-full w-full justify-center rounded-xl border-2 shadow-sm backface-hidden"
+                    class="align-items bg-tertiary absolute box-border flex h-full w-full justify-center rounded-xl border-2 border-emerald-200 shadow-sm backface-hidden"
                   ></div>
                   <div
-                    class="border-card-border absolute box-border flex h-full w-full rotate-y-180 justify-center rounded-xl border-2 backface-hidden"
+                    class="absolute box-border flex h-full w-full rotate-y-180 justify-center rounded-xl border-2 border-amber-200 backface-hidden"
                   >
                     <img class="rounded-xl" src={ReplacePlaceholders(data.picsURI, { character })} alt="" />
                   </div>
@@ -151,8 +166,9 @@
       {/if}
     </section>
     <section>
-      <button class="hover:motion-preset-shake bg-primary mt-5 rounded px-4 py-3 font-bold shadow-md" onclick={swapGame}
-        >SWAP GAME</button
+      <button
+        class="hover:motion-preset-shake bg-primary mt-5 rounded-xl px-8 py-3 font-bold shadow-md sm:px-12 sm:text-lg"
+        onclick={swapGame}>SWAP GAME</button
       >
     </section>
   </main>
