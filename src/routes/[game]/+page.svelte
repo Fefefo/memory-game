@@ -71,7 +71,7 @@
 
   function win() {
     elapsed = Math.floor((Date.now() - startTime!) / 1000);
-    const currBest = localStorage.getItem(`best-${max}`);
+    const currBest = localStorage.getItem(`best-${page.params.game}-${max}`);
     if (!currBest || elapsed < (bestElapsed = parseInt(currBest || "NaN", 10))) {
       bestElapsed = elapsed;
       localStorage.setItem(`best-${page.params.game}-${max}`, elapsed.toString());
